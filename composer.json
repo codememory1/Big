@@ -1,0 +1,28 @@
+{
+    "name": "codememory/big",
+    "license": "MIT",
+    "description": "",
+    "authors": [
+        {
+            "name": "Danil",
+            "email": "kostynd1@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Codememory\\Components\\Big\\": ""
+        }
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^5.2",
+        "codememory/global-config": "1.0.1"
+    },
+    "require": {
+        "codememory/config": "^1.0",
+        "codememory/fs": "^1.0",
+        "codememory/support": "1.2",
+        "codememory/caching": "1.1",
+        "codememory/environment": "^1.0",
+        "codememory/markup": "^1.0"
+    }
+}
