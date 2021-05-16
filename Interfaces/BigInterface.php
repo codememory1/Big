@@ -15,6 +15,17 @@ interface BigInterface
 {
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Override useCache parameter from configuration
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
+     * @param bool $use
+     *
+     * @return BigInterface
+     */
+    public function useCache(bool $use): BigInterface;
+
+    /**
      * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
      * Pass parameters to open template
      * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=

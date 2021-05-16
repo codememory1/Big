@@ -25,7 +25,7 @@ class TemplateNotExistException extends BigExceptions
 
         parent::__construct(sprintf(
             'Template %s on path %s does not exist',
-            Str::trimToSymbol(basename($path), '.'),
+            Str::trimAfterSymbol(basename($path), '.'),
             dirname($path)
         ));
 

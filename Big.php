@@ -41,6 +41,11 @@ class Big implements BigInterface
     private Template $template;
 
     /**
+     * @var bool
+     */
+    private bool $useCache;
+
+    /**
      * @var Engine|null
      */
     private ?Engine $engine = null;
@@ -68,9 +73,22 @@ class Big implements BigInterface
         $this->filesystem = $filesystem;
         $this->utils = new Utils($this->filesystem);
         $this->template = new Template($template, $this->filesystem, $this->utils);
+        $this->useCache = $this->utils->useCache();
 
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function useCache(bool $use): BigInterface
+    {
+        
+        $this->useCache = $use;
+        
+        return $this;
+        
+    }
+    
     /**
      * @inheritdoc
      */
@@ -108,7 +126,7 @@ class Big implements BigInterface
 
         $templateText = $this->getEngine()->iterationTemplateLines()->getTemplateText();
 
-        if ($this->utils->useCache()) {
+        if ($this->useCache) {
             $bigCache = $this->saveToCache($templateText);
 
             $this->compiledTemplate = $this->assessment(
