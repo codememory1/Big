@@ -19,6 +19,10 @@ class DebugTypes
     public const SYNTAX = 'E_BIG_SYNTAX';
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Returns an array of all existing reserved debug error types
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return array
      */
     public static function getAllTypesErrors(): array

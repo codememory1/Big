@@ -3,7 +3,8 @@
 namespace Codememory\Components\Big\Compilers;
 
 use Codememory\Components\Big\Debugger\DebugTypes;
-use Codememory\Components\Big\Interfaces\MessagesDebugInterface;
+use Codememory\Components\Big\Interfaces\BigConstructionInterface;
+use Codememory\Components\Big\Interfaces\DebugMessagesInterface;
 use Codememory\Support\Arr;
 
 /**
@@ -12,7 +13,7 @@ use Codememory\Support\Arr;
  *
  * @author  Codememory
  */
-final class OutputBigCompiler extends BigCompilerAbstract
+final class OutputBigCompiler extends BigCompilerAbstract implements BigConstructionInterface
 {
 
     /**
@@ -23,86 +24,46 @@ final class OutputBigCompiler extends BigCompilerAbstract
     ];
 
     /**
-     * @param int         $line
-     * @param string|null $lineText
-     *
-     * @return string|null
+     * @var string|null
      */
-    public function outputConstruction(int $line, ?string $lineText): ?string
-    {
-
-        $this->output($line, $lineText, function (string &$lineText, string $value) use ($line) {
-            $regexReplace = '\[\[\s*%s\s*]]';
-
-            if (preg_match('/^\$(?<var>\w+)/', $value, $match)) {
-                $variable = sprintf('$%s', $match['var']);
-
-                $this
-                    ->outputVariable(
-                        $this->regexp($regexReplace, $variable),
-                        $value,
-                        $lineText,
-                        $variable
-                    )
-                    ->outputExistVariable($line, $match);
-            } else {
-                $this->replaceByRegex(
-                    $this->regexp($regexReplace, $value),
-                    sprintf('<?php echo %s; ?>', $value),
-                    $lineText
-                );
-            }
-        });
-
-        return $lineText;
-
-    }
+    private ?string $templateString = null;
 
     /**
-     * @param string $regexReplace
-     * @param string $value
-     * @param string $lineText
-     * @param string $variable
-     *
-     * @return OutputBigCompiler
+     * @var int
      */
-    private function outputVariable(string $regexReplace, string $value, string &$lineText, string $variable): OutputBigCompiler
+    private int $lineNumber = 1;
+
+    /**
+     * @inheritdoc
+     */
+    public function setTemplateString(?string $templateString): BigConstructionInterface
     {
 
-        $readyString = sprintf("<?php echo %s; ?>", $variable);
-
-        if (isDev()) {
-            $this
-                ->addComment()
-                ->html(sprintf('The output of the %s variable', $variable), $readyString);
-        }
-
-        $this->replaceByRegex($regexReplace, $readyString, $lineText);
+        $this->templateString = $templateString;
 
         return $this;
 
     }
 
     /**
-     * @param int   $line
-     * @param array $match
-     *
-     * @return OutputBigCompiler
+     * @inheritdoc
      */
-    private function outputExistVariable(int $line, array $match): OutputBigCompiler
+    public function setLineNumber(int $lineNumber): BigConstructionInterface
     {
 
-        $variableName = $match['var'];
-
-        if (!Arr::exists($this->template->getParameters(), $variableName)) {
-            $this->createDebug(
-                DebugTypes::WARNING,
-                $line,
-                sprintf(MessagesDebugInterface::VARIABLE_NOT_EXIST, $variableName)
-            );
-        }
+        $this->lineNumber = $lineNumber;
 
         return $this;
+
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSuffixConstructionMethod(): string
+    {
+
+        return 'Construction';
 
     }
 
@@ -113,6 +74,60 @@ final class OutputBigCompiler extends BigCompilerAbstract
     {
 
         return $this->constructions;
+
+    }
+
+    /**
+     * @return string|null
+     */
+    public function outputConstruction(): ?string
+    {
+
+        $this->outputBlock($this->templateString, $this->lineNumber, function (?string $parametersConstruction, string $regexForReplaceConstruction, string $oldTemplateString) {
+            if (empty($parametersConstruction)) {
+                $this->createDebug(DebugTypes::TRAGIC, $this->lineNumber, DebugMessagesInterface::OUTPUT_NOT_PARAMETERS);
+            }
+
+            $this->processingOutputIfParameterVariable($parametersConstruction);
+
+            $this->replace($regexForReplaceConstruction, sprintf('<?php echo %s; ?>', $parametersConstruction), $this->templateString);
+
+            $this->compilationState($oldTemplateString, $this->templateString, $this->lineNumber);
+        });
+
+        return $this->templateString;
+
+    }
+
+    /**
+     * @param string $variableName
+     *
+     * @return bool
+     */
+    private function existVariable(string $variableName): bool
+    {
+
+        return Arr::exists($this->template->getParameters(), $variableName);
+
+    }
+
+    /**
+     * @param string|null $parametersConstruction
+     */
+    private function processingOutputIfParameterVariable(?string $parametersConstruction): void
+    {
+
+        if (preg_match('/^\$(?<variableName>\w+)/', $parametersConstruction, $match)) {
+            $variableName = $match['variableName'];
+
+            if (!$this->existVariable($variableName)) {
+                $this->createDebug(DebugTypes::WARNING, $this->lineNumber, sprintf(DebugMessagesInterface::VARIABLE_NOT_EXIST, $variableName));
+            }
+
+            if (isDev()) {
+                $this->addComment()->html(sprintf('The output of the %s variable', $variableName), $this->templateString);
+            }
+        }
 
     }
 

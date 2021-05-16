@@ -5,12 +5,11 @@ namespace Codememory\Components\Big\Compilers;
 use Codememory\Components\Big\Comments;
 use Codememory\Components\Big\Debugger\DebugTypes;
 use Codememory\Components\Big\Engine;
-use Codememory\Components\Big\Interfaces\BigConstructionInterface;
 use Codememory\Components\Big\Interfaces\DebuggerInterface;
-use Codememory\Components\Big\Interfaces\MessagesDebugInterface;
+use Codememory\Components\Big\Interfaces\DebugMessagesInterface;
 use Codememory\Components\Big\Template;
-use Codememory\Components\Big\Traits\ConstructionsCompilerTrait;
-use Codememory\Components\Big\Traits\OutputCompilerTrait;
+use Codememory\Components\Big\Traits\ConstructionAssistantTrait;
+use Codememory\Support\Arr;
 
 /**
  * Class BigCompilerAbstract
@@ -18,11 +17,10 @@ use Codememory\Components\Big\Traits\OutputCompilerTrait;
  *
  * @author  Codememory
  */
-abstract class BigCompilerAbstract implements BigConstructionInterface
+abstract class BigCompilerAbstract
 {
 
-    use OutputCompilerTrait;
-    use ConstructionsCompilerTrait;
+    use ConstructionAssistantTrait;
 
     /**
      * @var DebuggerInterface
@@ -54,6 +52,10 @@ abstract class BigCompilerAbstract implements BigConstructionInterface
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Simplified method of creating and executing debugs
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @param string $type
      * @param int    $line
      * @param string $message
@@ -70,40 +72,10 @@ abstract class BigCompilerAbstract implements BigConstructionInterface
     }
 
     /**
-     * @param string          $regex
-     * @param string|int|null $replacedBy
-     * @param string          $where
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Returns a Comments class object for adding comments to a line
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
      *
-     * @return $this
-     */
-    protected function replaceByRegex(string $regex, null|string|int $replacedBy, string &$where): BigCompilerAbstract
-    {
-
-        $where = preg_replace_callback($regex, function () use ($replacedBy) {
-            return $replacedBy;
-        }, $where);
-
-        return $this;
-
-    }
-
-    /**
-     * @param string $regex
-     * @param string $dummy
-     * @param bool   $escapeDummy
-     *
-     * @return string
-     */
-    protected function regexp(string $regex, string $dummy, bool $escapeDummy = true): string
-    {
-
-        $dummy = $escapeDummy ? preg_quote($dummy) : $dummy;
-
-        return sprintf('/%s/', sprintf($regex, $dummy));
-
-    }
-
-    /**
      * @return Comments
      */
     protected function addComment(): Comments
@@ -118,99 +90,170 @@ abstract class BigCompilerAbstract implements BigConstructionInterface
     }
 
     /**
-     * @param int         $line
-     * @param string|null $lineText
-     * @param callable    $additionalHandler
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Simplified method of writing regex using sprintf
+     * and parameter escaping
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
+     * @param string $regex
+     * @param array  $parameters
+     * @param bool   $escapingParameters
+     *
+     * @return string
+     */
+    protected function createRegex(string $regex, array $parameters = [], bool $escapingParameters = true): string
+    {
+
+        if ($escapingParameters) {
+            Arr::map($parameters, function (mixed $key, mixed $value) {
+                return [preg_quote($value)];
+            });
+        }
+
+        return sprintf($regex, ...$parameters);
+
+    }
+
+    /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * A simplified output compiler block that performs basic
+     * checks and invokes an additional processing callback
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
+     * @param string|null $templateString
+     * @param int         $lineNumber
+     * @param callable    $handler
      *
      * @return string|null
      */
-    protected function output(int $line, ?string &$lineText, callable $additionalHandler): ?string
+    protected function outputBlock(?string $templateString, int $lineNumber, callable $handler): ?string
     {
 
-        $oldLineText = $lineText;
+        $complementary = function (string $constructionWithoutOpened,
+                                   string $constructionParameters,
+                                   string $regexForReplaceConstruction,
+                                   string $oldTemplateString
+        ) use ($handler) {
+            call_user_func_array($handler, [$constructionParameters, $regexForReplaceConstruction, $oldTemplateString]);
+        };
 
-        $this->defaultIterationLexers(
-            Engine::TAG_BLOCK_START,
-            $lineText,
-            function (array $lexers) use ($oldLineText, $line, $additionalHandler, &$lineText) {
-                $this->outputIterationLexers($lexers, $oldLineText, $lineText, $line, $additionalHandler);
-            }
+        return $this->commonHandlerBlockConstruction(
+            Engine::OUTPUT_BLOCK_START,
+            Engine::OUTPUT_BLOCK_END,
+            $templateString,
+            $lineNumber,
+            $complementary
         );
-
-        return $lineText;
-
-    }
-
-    protected function construction(int $line, ?string &$lineText, callable $additionalHandler)
-    {
-
-        $oldLineText = $lineText;
-
-        $this->defaultIterationLexers(
-            Engine::VARIABLE_BLOCK_START,
-            $lineText,
-            function (array $lexers) use ($oldLineText, $line, $additionalHandler, &$lineText) {
-                $this->iterationLexersConstruction($oldLineText, $lineText, $lexers, $line, $additionalHandler);
-            }
-        );
-
-
 
     }
 
     /**
-     * @param string $closedRegexp
-     * @param string $lexer
-     * @param        $debugMessage
-     * @param int    $line
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * A simplified shortcut compiler block that performs basic actions
+     * and calls an additional callback by passing parameters
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
      *
-     * @return bool|array
-     */
-    private function mathClosedConstruction(string $closedRegexp, string $lexer, $debugMessage, int $line): bool|array
-    {
-
-        $pregMatch = preg_match($closedRegexp, $lexer, $match);
-
-        if (!$pregMatch) {
-            $this->createDebug(DebugTypes::SYNTAX, $line, $debugMessage);
-
-            return false;
-        }
-
-        return $match;
-
-    }
-
-    /**
-     * @param string      $startTag
-     * @param string|null $lineText
+     * @param string|null $templateString
+     * @param int         $lineNumber
      * @param callable    $handler
+     *
+     * @return string|null
      */
-    private function defaultIterationLexers(string $startTag, ?string $lineText, callable $handler): void
+    protected function shortcutBlock(?string $templateString, int $lineNumber, callable $handler): ?string
     {
 
-        $lexers = explode($startTag, $lineText);
+        $complementary = function (string $constructionWithoutOpened,
+                                   string $constructionParameters,
+                                   string $regexForReplaceConstruction,
+                                   string $oldTemplateString
+        ) use ($handler) {
+            preg_match('/(?<shortcutName>\w+)((\s+)(?<parameters>.*))?/', $constructionParameters, $match);
+            $parametersAndShortcutName = $match['shortcutName'] ?? null;
 
-        if(count($lexers) > 1) {
-            unset($lexers[0]);
+            call_user_func_array($handler, [$match['parameters'] ?? null, $regexForReplaceConstruction, $parametersAndShortcutName, $oldTemplateString]);
+        };
 
-            foreach ($lexers as $lexer) {
-                call_user_func_array($handler, [$lexers, $lexer]);
-            }
-        }
+        return $this->commonHandlerBlockConstruction(
+            Engine::SHORTCUT_BLOCK_START,
+            Engine::SHORTCUT_BLOCK_END,
+            $templateString,
+            $lineNumber,
+            $complementary
+        );
 
     }
 
     /**
-     * @param string|null $oldLineText
-     * @param string|null $lineText
-     * @param int         $line
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * The main compiler processing unit, which parses the template string lexers.
+     * It is checked for a closed structure; if it is not a debug is created
+     * and an additional construct handler is also called
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
+     * @param string      $startBlock
+     * @param string      $endBlock
+     * @param string|null $templateString
+     * @param int         $lineNumber
+     * @param callable    $complementary
+     *
+     * @return string|null
      */
-    protected function compilationCheck(?string $oldLineText, ?string $lineText, int $line): void
+    private function commonHandlerBlockConstruction(string $startBlock, string $endBlock, ?string &$templateString, int $lineNumber, callable $complementary): ?string
     {
 
-        if ($oldLineText === $lineText) {
-            $this->createDebug(DebugTypes::SYNTAX, $line, MessagesDebugInterface::ERROR_COMPILATION);
+        $oldTemplateString = $templateString;
+        $constructionsShortcutBlock = $this->getConstructionWithoutOpened($templateString, $startBlock);
+
+        $iterationConstructionHandler = function (string $constructionWithoutOpened) use (&$templateString, $lineNumber, $oldTemplateString, $complementary, $startBlock, $endBlock) {
+            if (!$this->checkConstructionClosed($constructionWithoutOpened, $endBlock)) {
+                $debugMessageNotClosedConstruction = sprintf(DebugMessagesInterface::NOT_CLOSED_OUTPUT, $endBlock);
+
+                $this->makeDebugNonClosedConstruction($lineNumber, $debugMessageNotClosedConstruction);
+            }
+
+            $constructionParameters = $this->getConstructionParameters($constructionWithoutOpened, $endBlock);
+            $regexForReplaceConstruction = $this->createRegexForReplaceConstruction($startBlock, $endBlock, $constructionParameters);
+
+            $templateString = call_user_func_array($complementary, [$constructionWithoutOpened, $constructionParameters, $regexForReplaceConstruction, $oldTemplateString]);
+
+        };
+
+        $this->iterationConstructions($constructionsShortcutBlock, $iterationConstructionHandler);
+
+        return $templateString;
+
+    }
+
+    /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Create and debug if the construct is not closed
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
+     * @param int    $lineNumber
+     * @param string $debugMessage
+     */
+    private function makeDebugNonClosedConstruction(int $lineNumber, string $debugMessage): void
+    {
+
+        $this->createDebug(DebugTypes::SYNTAX, $lineNumber, $debugMessage);
+
+    }
+
+    /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Iterating over constructs from a string and calling a handler
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
+     * @param array    $constructions
+     * @param callable $handler
+     */
+    private function iterationConstructions(array $constructions, callable $handler): void
+    {
+
+        if ([] !== $constructions) {
+            foreach ($constructions as $construction) {
+                call_user_func($handler, $construction);
+            }
         }
 
     }

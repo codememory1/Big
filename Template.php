@@ -52,6 +52,11 @@ class Template
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Set parameters(variables) for the open template.
+     * These variables can be used in the template itself
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @param array $parameters
      *
      * @return $this
@@ -66,6 +71,10 @@ class Template
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get the entire pattern consisting of an array of strings
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return array
      * @throws TemplateNotExistException
      */
@@ -84,13 +93,17 @@ class Template
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get template if template does not exist an exception will be thrown
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return string|null
      * @throws TemplateNotExistException
      */
     public function getTemplate(): ?string
     {
 
-        if(!$this->filesystem->exist($this->getFullPath($this->path))) {
+        if (!$this->filesystem->exist($this->getFullPath($this->path))) {
             throw new TemplateNotExistException($this->getFullPath($this->path));
         }
 
@@ -99,6 +112,10 @@ class Template
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get an array of added parameters
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return array
      */
     public function getParameters(): array
@@ -109,6 +126,10 @@ class Template
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get the name of the opened template
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return string
      */
     public function getTemplateName(): string
@@ -119,6 +140,10 @@ class Template
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get full path to open template
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @param string $path
      *
      * @return string

@@ -1,0 +1,8 @@
+big:
+  configName: big
+  defaultPathWithTemplates: /
+  useCache: false
+  allowPhpTags: false
+  debugger:
+    lines: 20
+    template: vendor/codememory/big/Debugger/templates/white

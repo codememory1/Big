@@ -52,6 +52,10 @@ class Utils
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get the status of the debug
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return bool
      */
     public function displayErrors(): bool
@@ -65,6 +69,10 @@ class Utils
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get the path where all templates are stored
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return string
      */
     public function getPathWithTemplates(): string
@@ -78,6 +86,10 @@ class Utils
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get Cache Usage Status
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return bool
      */
     public function useCache(): bool
@@ -91,6 +103,10 @@ class Utils
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get the number of lines to be displayed in the debug
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return int
      */
     public function getNumberLinesCode(): int
@@ -104,6 +120,11 @@ class Utils
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get the interrupt status of the following code if an error
+     * occurs from the template engine itself
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return bool
      */
     public function interruptFollowingCode(): bool
@@ -117,6 +138,11 @@ class Utils
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get an array of all types of errors that can be displayed
+     * in debug at compile time
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return array
      */
     public function getTypesError(): array

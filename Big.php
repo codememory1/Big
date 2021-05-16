@@ -134,6 +134,11 @@ class Big implements BigInterface
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Returns the template passed through the eval function
+     * which runs php strings
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @param array       $parameters
      * @param string|null $templateText
      *
@@ -151,6 +156,11 @@ class Big implements BigInterface
     }
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Creates or saves a template cache in the event that the
+     * template cache does not match the open template
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @param string|null $templateText
      *
      * @return BigCache
@@ -161,9 +171,11 @@ class Big implements BigInterface
 
         $bigCache = new BigCache(new Cache(new YamlType(), $this->filesystem));
 
-        $bigCache
-            ->setTemplateText($templateText)
-            ->save($this->template->getTemplateName());
+        if (serialize($bigCache->getTemplateFromCache($this->template->getTemplateName())) !== serialize($templateText)) {
+            $bigCache
+                ->setTemplateText($templateText)
+                ->save($this->template->getTemplateName());
+        }
 
         return $bigCache;
 

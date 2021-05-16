@@ -15,6 +15,10 @@ interface BigInterface
 {
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Pass parameters to open template
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @param array $parameters
      *
      * @return BigInterface
@@ -22,16 +26,29 @@ interface BigInterface
     public function setParameters(array $parameters): BigInterface;
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Get the object of the main engine of the template engine, with
+     * which you can add your own additional compiler
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return Engine
      */
     public function getEngine(): Engine;
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * The method starts compilation of the open template
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return BigInterface
      */
     public function make(): BigInterface;
 
     /**
+     * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
+     * Returns the compiled template text
+     * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
+     *
      * @return Closure
      */
     public function getCompiledTemplate(): Closure;

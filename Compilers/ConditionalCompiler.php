@@ -2,7 +2,9 @@
 
 namespace Codememory\Components\Big\Compilers;
 
-use Codememory\Components\Big\Engine;
+use Codememory\Components\Big\Debugger\DebugTypes;
+use Codememory\Components\Big\Interfaces\BigConstructionInterface;
+use Codememory\Components\Big\Interfaces\DebugMessagesInterface;
 
 /**
  * Class ConditionalCompiler
@@ -10,7 +12,7 @@ use Codememory\Components\Big\Engine;
  *
  * @author  Codememory
  */
-class ConditionalCompiler extends BigCompilerAbstract
+class ConditionalCompiler extends BigCompilerAbstract implements BigConstructionInterface
 {
 
     /**
@@ -20,62 +22,48 @@ class ConditionalCompiler extends BigCompilerAbstract
         'if', 'elseif', 'else', 'endIf'
     ];
 
-    public function ifConstruction(int $line, ?string $lineText)
+    /**
+     * @var string|null
+     */
+    private ?string $templateString = null;
+
+    /**
+     * @var int
+     */
+    private int $lineNumber = 1;
+
+    /**
+     * @inheritdoc
+     */
+    public function setTemplateString(?string $templateString): BigConstructionInterface
     {
 
-        $this->construction($line, $lineText, function (&$lineText, array $constructionData, string $constructionName, ?string $oldLineText) use ($line) {
-            if($constructionName === 'if') {
-                $constructionParams = trim($constructionData['constructionParams']);
-                $regexpForReplace = sprintf('/%s%s/', preg_quote(Engine::VARIABLE_BLOCK_START), preg_quote($constructionData[0]));
+        $this->templateString = $templateString;
 
-                $this->replaceByRegex(
-                    $regexpForReplace,
-                    sprintf('<?php if(%s): ?>', $constructionParams),
-                    $lineText
-                );
-
-                $this->compilationCheck($oldLineText, $lineText, $line);
-            }
-        });
-
-        return $lineText;
-
-    }
-
-    public function elseifConstruction(int $line, ?string $lineText)
-    {
-
-        return $lineText;
-
-    }
-
-    public function elseConstruction(int $line, ?string $lineText)
-    {
-
-        return $lineText;
+        return $this;
 
     }
 
     /**
-     * @param int         $line
-     * @param string|null $lineText
-     *
-     * @return string|null
+     * @inheritdoc
      */
-    public function endIfConstruction(int $line, ?string $lineText): ?string
+    public function setLineNumber(int $lineNumber): BigConstructionInterface
     {
 
-        $this->construction($line, $lineText, function (&$lineText, array $constructionData, string $constructionName, ?string $oldLineText) use ($line) {
-            if($constructionName === 'endIf') {
-                $regexpForReplace = sprintf('/%s%s/', preg_quote(Engine::VARIABLE_BLOCK_START), preg_quote($constructionData[0]));
+        $this->lineNumber = $lineNumber;
 
-                $this->replaceByRegex($regexpForReplace, '<?php endif; ?>', $lineText);
+        return $this;
 
-                $this->compilationCheck($oldLineText, $lineText, $line);
-            }
-        });
+    }
 
-        return $lineText;
+
+    /**
+     * @inheritDoc
+     */
+    public function getSuffixConstructionMethod(): string
+    {
+
+        return 'Construction';
 
     }
 
@@ -88,4 +76,94 @@ class ConditionalCompiler extends BigCompilerAbstract
         return $this->constructions;
 
     }
+
+    /**
+     * @return string|null
+     */
+    public function ifConstruction(): ?string
+    {
+
+        return $this->generalConditionalConstruction('if', function (?string $constructionParameters, string $regexForReplaceConstruction) {
+            if (empty($constructionParameters)) {
+                $this->createDebug(DebugTypes::TRAGIC, $this->lineNumber, sprintf(DebugMessagesInterface::SHORTCUT_PARAMETERS, 'if', 1));
+            }
+
+            $this->replace($regexForReplaceConstruction, sprintf('<?php if(%s): ?>', $constructionParameters), $this->templateString);
+        });
+
+    }
+
+    /**
+     * @return string|null
+     */
+    public function elseifConstruction(): ?string
+    {
+
+        return $this->generalConditionalConstruction('elseIf', function (?string $constructionParameters, string $regexForReplaceConstruction) {
+            if (empty($constructionParameters)) {
+                $this->createDebug(DebugTypes::TRAGIC, $this->lineNumber, sprintf(DebugMessagesInterface::SHORTCUT_PARAMETERS, 'elseIf', 1));
+            }
+
+            $this->replace($regexForReplaceConstruction, sprintf('<?php elseIf(%s): ?>', $constructionParameters), $this->templateString);
+        });
+
+    }
+
+    /**
+     * @return string|null
+     */
+    public function elseConstruction(): ?string
+    {
+
+        return $this->generalConditionalConstruction('else', function (?string $constructionParameters, string $regexForReplaceConstruction) {
+            if (!empty($constructionParameters)) {
+                $this->createDebug(DebugTypes::TRAGIC, $this->lineNumber, sprintf(DebugMessagesInterface::SHORTCUT_PARAMETERS, 'else', 0));
+            }
+
+            $this->replace($regexForReplaceConstruction, '<?php else: ?>', $this->templateString);
+        });
+
+    }
+
+    /**
+     * @return string|null
+     */
+    public function endIfConstruction(): ?string
+    {
+
+        return $this->generalConditionalConstruction('endIf', function (?string $constructionParameters, string $regexForReplaceConstruction) {
+            if (!empty($constructionParameters)) {
+                $this->createDebug(DebugTypes::TRAGIC, $this->lineNumber, sprintf(DebugMessagesInterface::SHORTCUT_PARAMETERS, 'endIf', 0));
+            }
+
+            $this->replace($regexForReplaceConstruction, '<?php endif; ?>', $this->templateString);
+        });
+
+    }
+
+    /**
+     * @param string   $shortcut
+     * @param callable $handler
+     *
+     * @return string|null
+     */
+    private function generalConditionalConstruction(string $shortcut, callable $handler): ?string
+    {
+
+        $this->shortcutBlock($this->templateString, $this->lineNumber, function (?string $constructionParameters,
+                                                                                 string $regexForReplaceConstruction,
+                                                                                 ?string $shortcutName,
+                                                                                 ?string $oldTemplateString) use ($shortcut, $handler) {
+
+            if ($shortcut === $shortcutName) {
+                call_user_func_array($handler, [$constructionParameters, $regexForReplaceConstruction]);
+
+                $this->compilationState($oldTemplateString, $this->templateString, $this->lineNumber);
+            }
+        });
+
+        return $this->templateString;
+
+    }
+
 }
