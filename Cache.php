@@ -16,8 +16,8 @@ use JetBrains\PhpStorm\Pure;
 class Cache
 {
 
-    private const TEMPLATE_CACHE_NAME_PREFIX = '__cdm-engine-big=%s';
-    private const TYPE_CACHE = 'template';
+    public const TEMPLATE_CACHE_NAME_PREFIX = '__cdm-engine-big=%s';
+    public const TYPE_CACHE = 'template';
 
     /**
      * @var CacheInterface
