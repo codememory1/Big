@@ -117,7 +117,7 @@ class Cache
     public function getTemplateFromCache(string $templateName): ?string
     {
 
-        return $this->cache->get(self::TYPE_CACHE, $this->getFullNameTemplateCache($templateName));
+        return $this->cache->get(self::TYPE_CACHE, $this->getFullNameTemplateCache($templateName)) ?: null;
 
     }
 
