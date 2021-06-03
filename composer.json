@@ -14,15 +14,15 @@
         }
     },
     "require-dev": {
-        "symfony/var-dumper": "^5.2",
-        "codememory/global-config": "1.0.1"
+        "symfony/var-dumper": "^5.2"
     },
     "require": {
-        "codememory/config": "^1.0",
-        "codememory/fs": "^1.0",
-        "codememory/support": "1.2",
-        "codememory/caching": "1.1",
-        "codememory/environment": "^1.0",
-        "codememory/markup": "^1.0"
+        "codememory/config": "^1.1.1",
+        "codememory/fs": "^1.1.2",
+        "codememory/support": "1.2.1",
+        "codememory/caching": "1.1.1",
+        "codememory/environment": "^1.0.2",
+        "codememory/markup": "^1.0.1",
+        "codememory/global-config": "1.1.1"
     }
 }
