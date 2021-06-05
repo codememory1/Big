@@ -1,11 +1,17 @@
+<?php $filesystem = new Codememory\FileSystem\File(); ?>
+
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Document</title>
-    <link rel="stylesheet" href="./Debugger/templates/styles/common.css">
-    <link rel="stylesheet" href="./Debugger/templates/styles/rainbow.css">
+    <title><?php echo $data->getMessage(); ?></title>
 </head>
+<style>
+    <?php
+        echo file_get_contents($filesystem->getRealPath('vendor/codememory/big/Debugger/templates/styles/rainbow.css'));
+        echo file_get_contents($filesystem->getRealPath('vendor/codememory/big/Debugger/templates/styles/common.css'));
+    ?>
+</style>
 <body data-theme="blue">
     <div class="container">
         <div class="header">
@@ -42,8 +48,11 @@
             ?>
         </div>
     </div>
-    <script src="./Debugger/templates/scripts/code-style.js"></script>
     <script>
+        <?php
+            echo file_get_contents($filesystem->getRealPath('vendor/codememory/big/Debugger/templates/scripts/code-style.js'));
+        ?>
+
         let maxWidthLine = 0;
 
         document.querySelectorAll('.line-code ').forEach(block => {
@@ -63,3 +72,4 @@
     </script>
 </body>
 </html>
+
